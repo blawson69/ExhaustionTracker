@@ -1,6 +1,8 @@
 # ExhaustionTracker
 
-This [Roll20](http://roll20.net/) script places an indicator on a character's token to indicate the exhaustion level for that character, updates the character's exhaustion level on the character sheet, and will show players their character's current exhaustion level along with the requisite effects/penalties. It is currently only for use with the [5e Shaped Sheet](http://github.com/mlenser/roll20-character-sheets/tree/master/5eShaped).
+This [Roll20](http://roll20.net/) script places an indicator on a character's token to indicate the Exhaustion Level for that character, updates the character's Exhaustion Level on the character sheet, and will show players their character's current Exhaustion Level along with the requisite effects/penalties. It is currently only for use with the [5e Shaped Sheet](http://github.com/mlenser/roll20-character-sheets/tree/master/5eShaped).
+
+Changes made on the character sheet will update the character's token with the corresponding Exhaustion Marker. Note that the player ribbon must be on the current page for the token to be updated. Also, characters with any level of exhaustion indicated on their character sheet will have their tokens updated with the corresponding Exhaustion Marker whenever they are dragged to the VTT.
 
 ## Config
 
@@ -16,8 +18,8 @@ By default, ExhaustionTracker is available only for the GM, and players can only
 
 ## Commands
 
-`!exhausted show` will display the Exhaustion Level for all selected characters. If the Shaped Sheet already has any levels of exhaustion indicated, ExhaustionTracker will add the Exhaustion Marker to token along with a number indicating the level of exhaustion. The dialog also gives the accumulated effects of exhaustion based on that level.
+`!exhausted show` will display the Exhaustion Level for all selected characters, along with the accumulated effects of exhaustion based on their level. If the Shaped Sheet already has any levels of exhaustion indicated and the token does not show the Exhaustion Marker, ExhaustionTracker will add the Exhaustion Marker to token along with a number indicating the level of exhaustion.
 
 `!exhausted+` increases the selected character's Exhaustion Level by one, sets the appropriate marker on the token, and displays the effects of the new Level.
 
-`!exhausted-` decreases the selected character's Exhaustion Level by one, sets the appropriate marker on the token, and displays the effects of the new Level. If the reduction of exhaustion is due to a Long Rest, it is highly recommended to use the sheet's Long Rest macro instead to insure all other effects of a Long Rest be implemented.
+`!exhausted-` decreases the selected character's Exhaustion Level by one, sets the appropriate marker on the token, and displays the effects of the new Level.

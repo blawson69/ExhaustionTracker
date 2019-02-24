@@ -12,7 +12,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 
     //---- INFO ----//
 
-    var version = '0.1',
+    var version = '0.2',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -53,8 +53,10 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                     case 'toggle-players':
                         if (playerIsGM(msg.playerid)) togglePlayers(msg);
                         break;
-                    case 'help':
                     case 'config':
+                        if (playerIsGM(msg.playerid)) showConfig();
+                        break;
+                    case 'help':
                     default:
                         showHelp(msg);
                         break;
@@ -67,38 +69,45 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 
     showHelp = function (msg) {
         var marker_style = 'margin: 5px 10px 0 0; display: block; float: left;';
-        var button = '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted markers">Change Marker</a></div><br>';
         var message = '<span style=\'' + styles.code + '\'>!exhausted help</span><br>Sends this dialog to the chat window.<br><br>'
         + '<span style=\'' + styles.code + '\'>!exhausted show</span><br>Displays the Exhaustion Level for the selected character along with the accumulated effects.<br><br>';
 
         if (state['ExhaustionTracker'].allowPlayerUse || playerIsGM(msg.playerid)) {
             message += '<span style=\'' + styles.code + '\'>!exhausted+</span><br>Increases the selected character\'s Exhaustion Level by one, sets the appropriate Exhaustion Marker on the token, and displays the effects of the new Level.<br><br>'
-            + '<span style=\'' + styles.code + '\'>!exhausted-</span><br>Decreases the selected character\'s Exhaustion Level by one, sets the appropriate Exhaustion Marker on the token, and displays the effects of the new Level.<br><br>Long Rest? Just use the sheet\'s Long Rest macro instead.<br><br>';
-        }
-
-        if (playerIsGM(msg.playerid)) {
-            message += '<h4>Player Use</h4>';
-            if (state['ExhaustionTracker'].allowPlayerUse) {
-                message += 'You are currently configured to allow players to use ExhaustionTracker to adjust their own Exhaustion Levels.<br><div style="'
-                + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted toggle-players">Disable</a></div><br>';
-            } else {
-                message += 'Players are not currently allowed to change their Exhaustion Levels, which is the default setting. However, you may want to enable this if they '
-                + 'have macros they need to run in conjunction with other abilities. If this is the case, you mas set ExhaustionTracker to allow users to this functionality.'
-                + '<br><div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted toggle-players">Enable</a></div><br>';
-            }
+            + '<span style=\'' + styles.code + '\'>!exhausted-</span><br>Decreases the selected character\'s Exhaustion Level by one, sets the appropriate Exhaustion Marker on the token, and displays the effects of the new Level.<br><br>';
         }
 
         message += '<h4>Exhaustion Marker</h4>' + getMarker(state['ExhaustionTracker'].exhaustedMarker, marker_style)
         + 'This is the current status marker to indicate Exhaustion. A number will appear on it to indicate the character\'s Exhaustion Level.';
-        if (playerIsGM(msg.playerid)) message += button;
 
-        if (playerIsGM(msg.playerid)) showAdminDialog('Help Menu', message);
-        else showDialog('Help Menu', message, msg.who, true);
+        if (playerIsGM(msg.playerid)) {
+            message += '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted config">Config Menu</a></div><br>';
+            showAdminDialog('Help Menu', message);
+        } else showDialog('Help Menu', message, msg.who, true);
+    },
+
+    showConfig = function (msg) {
+        var marker_style = 'margin: 5px 10px 0 0; display: block; float: left;';
+        var message = '<h4>Player Use</h4>';
+        if (state['ExhaustionTracker'].allowPlayerUse) {
+            message += 'You are currently configured to allow players to use ExhaustionTracker to adjust their own Exhaustion Levels.<br><div style="'
+            + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted toggle-players">Disable</a></div><br>';
+        } else {
+            message += 'Players are not currently allowed to change their Exhaustion Levels, which is the default setting. However, you may want to enable this if they '
+            + 'have macros they need to run in conjunction with other abilities. If this is the case, you may set ExhaustionTracker to allow users to this functionality.'
+            + '<br><div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted toggle-players">Enable</a></div><br>';
+        }
+
+        message += '<h4>Exhaustion Marker</h4>' + getMarker(state['ExhaustionTracker'].exhaustedMarker, marker_style)
+        + '"' + state['ExhaustionTracker'].exhaustedMarker + '" is the current status marker being used to indicate Exhaustion.'
+        + '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted markers">Change Marker</a></div>';
+
+        showAdminDialog('Config Menu', message);
     },
 
     togglePlayers = function (msg) {
         state['ExhaustionTracker'].allowPlayerUse = !state['ExhaustionTracker'].allowPlayerUse;
-        showHelp(msg);
+        showConfig(msg);
     },
 
     setMarker = function (msg, marker) {
@@ -108,7 +117,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         } else {
             showAdminDialog('Error', 'The status marker "' + marker + '" is invalid. Please try again.');
         }
-        showHelp(msg);
+        showConfig(msg);
     },
 
     showDialog = function (title, content, character = '', silent = false) {
@@ -139,7 +148,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
             }
             message += '</tr>';
         });
-        message += '<tr><td colspan="3" style="text-align: center; padding: 7px;"><a style="' + styles.button + '" href="!exhausted help">&#9668; Back</a> &nbsp; <a style="'
+        message += '<tr><td colspan="3" style="text-align: center; padding: 7px;"><a style="' + styles.button + '" href="!exhausted config">&#9668; Back</a> &nbsp; <a style="'
         + styles.button + '" href="!exhausted set-marker &#63;&#123;Status Marker&#124;&#125;">Different Marker</a></td></tr>';
         message += '</table>';
         showAdminDialog('Choose Exhaustion Marker', message);
@@ -175,9 +184,6 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                     if (token && token.get('represents') !== '') {
                         var character = getObj('character', token.get('represents'));
                         var level = findObjs({ type: 'attribute', characterid: character.get('id'), name: 'exhaustion_level' })[0];
-
-                        // Set attribute if character has never been exhausted before
-                        if (!level) level = createObj("attribute", {characterid: character.get('id'), name: "exhaustion_level", current: 0});
                         if (level) {
                             // Change exhaustion level on character sheet
                             var currLevel = parseInt(level.get('current')), newLevel;
@@ -186,11 +192,8 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                             level.set('current', newLevel);
 
                             // Set status marker indicating exhaustion level
-                            token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, false);
-                            var currMarkers = token.get("statusmarkers");
-                            if (newLevel != 0) {
-                                token.set({statusmarkers: currMarkers + ',' + state['ExhaustionTracker'].exhaustedMarker + '@' + newLevel});
-                            }
+                            if (newLevel == 0) token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, false);
+                             else token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, newLevel);
 
                             // Display new exhaustion level
                             showLevel([{_id: token.get('id'), _type: 'graphic'}], msg);
@@ -215,12 +218,8 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                     var char = getObj('character', token.get('represents'));
                     if (char) {
                         var message, level = getLevel(char.get('id'));
-
-                        // Check to see if the status marker is set. If not, set interval
-                        var currMarkers = token.get("statusmarkers");
-                        if (currMarkers.indexOf(state['ExhaustionTracker'].exhaustedMarker) == -1 && level != 0) {
-                            token.set({statusmarkers: currMarkers + ',' + state['ExhaustionTracker'].exhaustedMarker + '@' + level});
-                        }
+                        // Make sure the status marker is set with the appropriate level
+                        token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, (level == 0 ? false : level) );
 
                         if (level == 0) {
                             message = 'You are currently not Exhausted.';
@@ -253,15 +252,39 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         var char = getObj('character', char_id);
         if (char) {
             var level = findObjs({ type: 'attribute', characterid: char_id, name: 'exhaustion_level' })[0];
+            // Set attribute if character has never been exhausted before
+            if (!level) level = createObj("attribute", {characterid: character.get('id'), name: "exhaustion_level", current: 0});
             if (level) result = parseInt(level.get('current'));
         }
         return result;
+    },
+
+    handleExhaustionChange = function (obj, prev) {
+        if (obj.get('name') == 'exhaustion_level') {
+            var token = findObjs({ represents: obj.get('characterid'), _pageid: Campaign().get("playerpageid") })[0];
+            if (token) {
+                var char = getObj('character', obj.get('characterid'));
+                showLevel([{_id: token.get('id'), _type: 'graphic'}], { who: char.get('name'), playerid: char.get('controlledby').split(',')[0] });
+            }
+        }
+    },
+
+    handleTokenDrop = function (obj, prev) {
+        if (obj.get('represents') && obj.get('represents') != '' && obj.get('represents') != 'undefined') {
+            var token = getObj('graphic', obj.get('id'));
+            if (token) {
+                var level = getLevel(obj.get('represents'));
+                token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, (level == 0 ? false : level) );
+            }
+        }
     },
 
     //---- PUBLIC FUNCTIONS ----//
 
     registerEventHandlers = function () {
 		on('chat:message', handleInput);
+        on('change:attribute', handleExhaustionChange);
+        on('add:graphic', handleTokenDrop);
 	};
 
     return {
