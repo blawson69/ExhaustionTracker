@@ -12,8 +12,8 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 
     //---- INFO ----//
 
-    var version = '0.2',
-    debugMode = false,
+    var version = '0.3',
+    debugMode = true,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
@@ -191,9 +191,12 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                             else newLevel = (currLevel > 0) ? currLevel - 1 : 0;
                             level.set('current', newLevel);
 
-                            // Set status marker indicating exhaustion level
-                            if (newLevel == 0) token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, false);
-                             else token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, newLevel);
+                            // Set status marker indicating exhaustion level for all character's tokens
+                            var char_tokens = findObjs({ represents: character.get('id') });
+                            _.each(char_tokens, function(char_token) {
+                                if (newLevel == 0) char_token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, false);
+                                else char_token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, newLevel);
+                            });
 
                             // Display new exhaustion level
                             showLevel([{_id: token.get('id'), _type: 'graphic'}], msg);
@@ -248,11 +251,9 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
     },
 
     getLevel = function(char_id) {
-        var result = 0;
-        var char = getObj('character', char_id);
+        var result = 0, char = getObj('character', char_id);
         if (char) {
             var level = findObjs({ type: 'attribute', characterid: char_id, name: 'exhaustion_level' })[0];
-            // Set attribute if character has never been exhausted before
             if (!level) level = createObj("attribute", {characterid: character.get('id'), name: "exhaustion_level", current: 0});
             if (level) result = parseInt(level.get('current'));
         }
@@ -261,10 +262,16 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 
     handleExhaustionChange = function (obj, prev) {
         if (obj.get('name') == 'exhaustion_level') {
-            var token = findObjs({ represents: obj.get('characterid'), _pageid: Campaign().get("playerpageid") })[0];
-            if (token) {
+            var page_token_id = '', tokens = findObjs({ represents: obj.get('characterid') });
+            if (tokens) {
+                var level = getLevel(obj.get('characterid'));
                 var char = getObj('character', obj.get('characterid'));
-                showLevel([{_id: token.get('id'), _type: 'graphic'}], { who: char.get('name'), playerid: char.get('controlledby').split(',')[0] });
+                _.each(tokens, function(token) {
+                    if (level == 0) token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, false);
+                    else token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, level);
+                    if (token.get('pageid') == Campaign().get("playerpageid")) page_token_id = token.get('id');
+                });
+                showLevel([{_id: page_token_id, _type: 'graphic'}], { who: char.get('name'), playerid: char.get('controlledby').split(',')[0] });
             }
         }
     },
