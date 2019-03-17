@@ -12,8 +12,8 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 
     //---- INFO ----//
 
-    var version = '0.3',
-    debugMode = false,
+    var version = '0.4',
+    debugMode = true,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
@@ -43,6 +43,9 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                 switch (parms[1]) {
                     case 'show':
                         showLevel(msg.selected, msg);
+                        break;
+                    case 'update':
+                        updateTokens(msg.selected, msg);
                         break;
                     case 'set-marker':
                         if (playerIsGM(msg.playerid)) setMarker(msg, msg.content.split(/\s+/i).pop().toLowerCase());
@@ -214,7 +217,9 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
     },
 
     showLevel = function (tokens, msg) {
+        // Updates tokens based on the character sheet and sends an explanation of the current exhaustion level
         if (tokens) {
+            var regex = /\-\-silent/i;
             _.each(tokens, function(obj) {
                 var token = getObj(obj._type, obj._id);
                 if (token && token.get('represents') !== '') {
@@ -240,7 +245,8 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                                 message += '</ul>';
                             }
                         }
-                        showDialog('Exhaustion Level', message, char.get('name'), false);
+                        // Skip dialog if intended to be silent
+                        if (!regex.test(msg.content)) showDialog('Exhaustion Level', message, char.get('name'), false);
                     }
                 }
             });
@@ -248,6 +254,14 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
             if (playerIsGM(msg.playerid)) showAdminDialog('Error', 'You must select some character tokens first.');
             else showDialog('Error', 'You must select some character tokens first.', msg.who, true);
         }
+    },
+
+    updateTokens = function(tokens, msg) {
+        // Updates tokens based on the character sheet without sending a dialog to chat
+        setTimeout(function () {
+            msg.content += ' --silent';
+            showLevel(tokens, msg);
+        }, 500);
     },
 
     getLevel = function(char_id) {
