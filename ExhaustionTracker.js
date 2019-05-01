@@ -1,6 +1,6 @@
 /*
 ExhaustionTracker
-Removes tokens marked "dead" from the Turn Tracker
+Changes and maintains character exhaustion levels on the Roll20 5e Shaped Sheet.
 
 On Github:	https://github.com/blawson69
 Contact me: https://app.roll20.net/users/1781274/ben-l
