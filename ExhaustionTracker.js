@@ -225,7 +225,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
                 if (token && token.get('represents') !== '') {
                     var char = getObj('character', token.get('represents'));
                     if (char) {
-                        var message, level = getLevel(char.get('id'));
+                        var message, level = getExhaustionLevel(char.get('id'));
                         // Make sure the status marker is set with the appropriate level
                         token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, (level == 0 ? false : level) );
 
@@ -264,12 +264,12 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         }, 500);
     },
 
-    getLevel = function(char_id) {
+    getExhaustionLevel = function(char_id) {
         var result = 0, char = getObj('character', char_id);
         if (char) {
             var level = findObjs({ type: 'attribute', characterid: char_id, name: 'exhaustion_level' })[0];
-            if (!level) level = createObj("attribute", {characterid: character.get('id'), name: "exhaustion_level", current: 0});
             if (level) result = parseInt(level.get('current'));
+            else level = createObj("attribute", {characterid: char.get('id'), name: "exhaustion_level", current: 0});
         }
         return result;
     },
@@ -278,7 +278,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         if (obj.get('name') == 'exhaustion_level') {
             var page_token_id = '', tokens = findObjs({ represents: obj.get('characterid') });
             if (tokens) {
-                var level = getLevel(obj.get('characterid'));
+                var level = getExhaustionLevel(obj.get('characterid'));
                 var char = getObj('character', obj.get('characterid'));
                 _.each(tokens, function(token) {
                     if (level == 0) token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, false);
@@ -294,7 +294,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         if (obj.get('represents') && obj.get('represents') != '' && obj.get('represents') != 'undefined') {
             var token = getObj('graphic', obj.get('id'));
             if (token) {
-                var level = getLevel(obj.get('represents'));
+                var level = getExhaustionLevel(obj.get('represents'));
                 token.set('status_' + state['ExhaustionTracker'].exhaustedMarker, (level == 0 ? false : level) );
             }
         }
