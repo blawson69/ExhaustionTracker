@@ -8,7 +8,7 @@ Changes made directly on the character sheet will update all of that character's
 
 Exhaustion Marker is the status marker used to indicate exhaustion, and defaults to the "half-haze" status marker. The GM can change the Exhaustion Marker to any status marker desired. The Config Menu will show a list of buttons for some suggested markers, or you can use the "Different Marker" button to provide the name of any of the current valid status markers.
 
-Note that because ExhaustionTracker updates status markers automatically, there could be conflict with scripts such as [StatusInfo](https://github.com/RobinKuiper/Roll20APIScripts/tree/master/StatusInfo) and others that also modify status markers. If changing the Exhaustion Marker, **make sure you choose a status marker that is not being used by another script.**
+Note that because ExhaustionTracker updates status markers automatically, there could be conflict with scripts such as [StatusInfo](https://github.com/RobinKuiper/Roll20APIScripts/tree/master/StatusInfo), [EncumbranceTracker](https://github.com/blawson69/EncumbranceTracker) and others that also modify status markers. If changing the Exhaustion Marker, **make sure you choose a status marker that is not being used by another script.**
 
 ## Player Access
 
