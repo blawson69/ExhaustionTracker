@@ -1,14 +1,16 @@
 # ExhaustionTracker
 
+> **New in v0.5:** ExhaustionTracker has been updated to support the new [custom token markers](https://wiki.roll20.net/Custom_Token_Markers).
+
 This [Roll20](http://roll20.net/) script places an indicator on a character's token to indicate the Exhaustion Level for that character, updates the character's Exhaustion Level on the character sheet, and will show players their character's current Exhaustion Level along with the requisite effects/penalties. It is currently only for use with the [5e Shaped Sheet](http://github.com/mlenser/roll20-character-sheets/tree/master/5eShaped).
 
 Changes made directly on the character sheet will update all of that character's tokens with the corresponding Exhaustion Marker. Also, characters with any level of exhaustion indicated on their character sheet will have their tokens updated with the corresponding Exhaustion Marker whenever they are dragged to the VTT.
 
 ## Exhaustion Marker
 
-Exhaustion Marker is the status marker used to indicate exhaustion, and defaults to the "half-haze" status marker. The GM can change the Exhaustion Marker to any status marker desired. The Config Menu will show a list of buttons for some suggested markers, or you can use the "Different Marker" button to provide the name of any of the current valid status markers.
+The Exhaustion Marker is the status marker used to indicate exhaustion, and defaults to the "half-haze" status marker. The GM can change the Exhaustion Marker to any status marker desired. The Config Menu provides a "Choose Marker" button to display all token markers *including custom token markers* for easy selection, or you can use the "set manually" link to provide the name or name::ID combo for any valid status markers.
 
-Note that because ExhaustionTracker updates status markers automatically, there could be conflict with scripts such as [StatusInfo](https://github.com/RobinKuiper/Roll20APIScripts/tree/master/StatusInfo), [EncumbranceTracker](https://github.com/blawson69/EncumbranceTracker) and others that also modify status markers. If changing the Exhaustion Marker, **make sure you choose a status marker that is not being used by another script.**
+Note that because ExhaustionTracker updates status markers automatically, there could be conflict with scripts such as [StatusInfo](https://github.com/RobinKuiper/Roll20APIScripts/tree/master/StatusInfo), [EncumbranceTracker](https://github.com/blawson69/EncumbranceTracker), [CombatTracker](https://github.com/vicberg/Combattracker), and others that also modify status markers. If changing the Exhaustion Marker, **make sure you choose a status marker that is not being used by another script.**
 
 ## Player Access
 

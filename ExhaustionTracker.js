@@ -4,7 +4,9 @@ Changes and maintains character exhaustion levels on the Roll20 5e Shaped Sheet.
 
 On Github:	https://github.com/blawson69
 Contact me: https://app.roll20.net/users/1781274/ben-l
-Like this script? Buy me a coffee: https://venmo.com/theRealBenLawson
+
+Like this script? Become a patron:
+    https://www.patreon.com/benscripts
 */
 
 var ExhaustionTracker = ExhaustionTracker || (function () {
@@ -12,12 +14,14 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 
     //---- INFO ----//
 
-    var version = '0.4',
+    var version = '0.5',
     debugMode = false,
+    MARKERS,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
         buttonWrapper: 'text-align: center; margin: 10px 0; clear: both;',
+        textButton: 'background-color: transparent; border: none; padding: 0; color: #8e342a; text-decoration: underline;',
         code: 'font-family: "Courier New", Courier, monospace; background-color: #ddd; color: #000; padding: 2px 4px;',
         alert: 'color: #C91010; font-size: 1.5em; font-weight: bold; font-variant: small-caps; text-align: center;'
     },
@@ -28,6 +32,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         if (typeof state['ExhaustionTracker'].exhaustedMarker == 'undefined') state['ExhaustionTracker'].exhaustedMarker = 'half-haze';
         if (typeof state['ExhaustionTracker'].allowPlayerUse == 'undefined') state['ExhaustionTracker'].allowPlayerUse = false;
         log('--> ExhaustionTracker v' + version + ' <-- Initialized');
+        MARKERS = JSON.parse(Campaign().get("token_markers"));
         if (debugMode) showAdminDialog('Debug Mode', 'ExhaustionTracker has loaded...');
     },
 
@@ -81,10 +86,10 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         }
 
         message += '<h4>Exhaustion Marker</h4>' + getMarker(state['ExhaustionTracker'].exhaustedMarker, marker_style)
-        + 'This is the current status marker to indicate Exhaustion. A number will appear on it to indicate the character\'s Exhaustion Level.';
+        + 'This is the current status marker to indicate Exhaustion. A number will appear on it to indicate the character\'s Exhaustion Level.<br>';
 
         if (playerIsGM(msg.playerid)) {
-            message += '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted config">Config Menu</a></div><br>';
+            message += '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted config">Config Menu</a></div>';
             showAdminDialog('Help Menu', message);
         } else showDialog('Help Menu', message, msg.who, true);
     },
@@ -101,9 +106,11 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
             + '<br><div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted toggle-players">Enable</a></div><br>';
         }
 
-        message += '<h4>Exhaustion Marker</h4>' + getMarker(state['ExhaustionTracker'].exhaustedMarker, marker_style)
-        + '"' + state['ExhaustionTracker'].exhaustedMarker + '" is the current status marker being used to indicate Exhaustion.'
-        + '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted markers">Change Marker</a></div>';
+        var curr_marker = _.find(MARKERS, function (x) { return x.tag == state['ExhaustionTracker'].exhaustedMarker; });
+        message += '<h4>Exhaustion Marker</h4>' + getMarker(curr_marker.tag, marker_style)
+        + '"' + curr_marker.name + '" is the current status marker being used to indicate Exhaustion.'
+        + '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted markers" title="This may result in a very long list...">Choose Marker</a></div>'
+        + '<div style="text-align: center;"><a style="' + styles.textButton + '" href="!exhausted set-marker &#63;&#123;Status Marker&#124;&#125;">Set manually</a></div>';
 
         showAdminDialog('Config Menu', message);
     },
@@ -114,7 +121,9 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
     },
 
     setMarker = function (msg, marker) {
-        var status_markers = ['blue', 'brown', 'green', 'pink', 'purple', 'red', 'yellow', 'all-for-one', 'angel-outfit', 'archery-target', 'arrowed', 'aura', 'back-pain', 'black-flag', 'bleeding-eye', 'bolt-shield', 'broken-heart', 'broken-shield', 'broken-skull', 'chained-heart', 'chemical-bolt', 'cobweb', 'dead', 'death-zone', 'drink-me', 'edge-crack', 'fishing-net', 'fist', 'fluffy-wing', 'flying-flag', 'frozen-orb', 'grab', 'grenade', 'half-haze', 'half-heart', 'interdiction', 'lightning-helix', 'ninja-mask', 'overdrive', 'padlock', 'pummeled', 'radioactive', 'rolling-bomb', 'screaming', 'sentry-gun', 'skull', 'sleepy', 'snail', 'spanner', 'stopwatch', 'strong', 'three-leaves', 'tread', 'trophy', 'white-tower'];
+        marker = marker.replace('=', '::');
+        var status_markers = _.pluck(MARKERS, 'tag');
+        _.each(['red', 'blue', 'brown', 'green', 'brown', 'pink', 'purple', 'pink', 'yellow', 'dead'], function (x) { status_markers.push(x); });
         if (_.find(status_markers, function (tmp) {return tmp === marker; })) {
             state['ExhaustionTracker'].exhaustedMarker = marker;
         } else {
@@ -140,9 +149,9 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 	},
 
     showMarkers = function () {
-        var status_markers = ['blue', 'brown', 'green', 'pink', 'purple', 'yellow', 'sleepy', 'half-haze', 'back-pain', 'flying-flag'];
+        var status_markers = ['red', 'blue', 'brown', 'green', 'brown', 'pink', 'purple', 'pink', 'yellow'];
         var message = '<table style="border: 0; width: 100%;" cellpadding="0" cellspacing="2">';
-        _.each(status_markers, function(marker) {
+        _.each(status_markers, function (marker) {
             message += '<tr><td>' + getMarker(marker, 'margin-right: 10px;') + '</td><td style="white-space: nowrap; width: 100%;">' + marker + '</td>';
             if (marker == state['ExhaustionTracker'].exhaustedMarker) {
                 message += '<td style="text-align: center;">Current</td>';
@@ -151,32 +160,44 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
             }
             message += '</tr>';
         });
-        message += '<tr><td colspan="3" style="text-align: center; padding: 7px;"><a style="' + styles.button + '" href="!exhausted config">&#9668; Back</a> &nbsp; <a style="'
-        + styles.button + '" href="!exhausted set-marker &#63;&#123;Status Marker&#124;&#125;">Different Marker</a></td></tr>';
+
+        _.each(MARKERS, function (icon) {
+            message += '<tr><td>' + getMarker(icon.tag, 'margin-right: 10px;') + '</td><td style="white-space: nowrap; width: 100%;">' + icon.name + '</td>';
+            if (icon.tag == state['ExhaustionTracker'].exhaustedMarker) {
+                message += '<td style="text-align: center;">Current</td>';
+            } else {
+                message += '<td style="text-align: center; white-space: nowrap; padding: 7px;"><a style="' + styles.button + '" href="!exhausted set-marker ' + icon.tag.replace('::','=') + '">Set Marker</a></td>';
+            }
+            message += '</tr>';
+        });
+
+        message += '<tr><td colspan="3" style="text-align: center; padding: 7px;"><a style="' + styles.button + '" href="!exhausted config">&#9668; Back</a></td></tr>';
         message += '</table>';
         showAdminDialog('Choose Exhaustion Marker', message);
     },
 
     getMarker = function (marker, style = '') {
-        let X = '';
-        let marker_style = 'width: 24px; height: 24px;';
-        var marker_pos = {red:"#C91010",  blue: "#1076C9",  green: "#2FC910",  brown: "#C97310",  purple: "#9510C9",  pink: "#EB75E1",  yellow: "#E5EB75",  dead: "X",  skull: 0, sleepy: 34, "half-heart": 68, "half-haze": 102, interdiction: 136, snail: 170, "lightning-helix": 204, spanner: 238, "chained-heart": 272, "chemical-bolt": 306, "death-zone": 340, "drink-me": 374, "edge-crack": 408, "ninja-mask": 442, stopwatch: 476, "fishing-net": 510, overdrive: 544, strong: 578, fist: 612, padlock: 646, "three-leaves": 680, "fluffy-wing": 714, pummeled: 748, tread: 782, arrowed: 816, aura: 850, "back-pain": 884, "black-flag": 918, "bleeding-eye": 952, "bolt-shield": 986, "broken-heart": 1020, cobweb: 1054, "broken-shield": 1088, "flying-flag": 1122, radioactive: 1156, trophy: 1190, "broken-skull": 1224, "frozen-orb": 1258, "rolling-bomb": 1292, "white-tower": 1326, grab: 1360, screaming: 1394,  grenade: 1428,  "sentry-gun": 1462,  "all-for-one": 1496,  "angel-outfit": 1530,  "archery-target": 1564};
+        var return_marker = '',
+        marker_style = 'width: 24px; height: 24px;' + style,
+        status_markers = _.pluck(MARKERS, 'tag'),
+        alt_markers = [{name:'red', val:"#C91010"}, {name: 'blue', val: "#1076C9"}, {name: 'green', val: "#2FC910"}, {name: 'brown', val: "#C97310"}, {name: 'purple', val: "#9510C9"}, {name: 'pink', val: "#EB75E1"}, {name: 'yellow', val: "#E5EB75"}, {name: 'dead', val: "X"}];
+        var color = _.find(alt_markers, function (x) { return x.name == marker; });
 
-        if (typeof marker_pos[marker] === 'undefined') return false;
-
-        if (Number.isInteger(marker_pos[marker])) {
-            marker_style += 'background-image: url(https://roll20.net/images/statussheet.png);'
-            + 'background-repeat: no-repeat; background-position: -' + marker_pos[marker] + 'px 0;';
-        } else if (marker_pos[marker] === 'X') {
-            marker_style += 'color: #C91010; font-size: 32px; font-weight: bold; text-align: center; padding-top: 5px; overflow: hidden;';
-            X = 'X';
+        if (_.find(status_markers, function (x) { return x == marker; })) {
+            var icon = _.find(MARKERS, function (x) { return x.tag == marker; });
+            return_marker = '<img src="' + icon.url + '" width="24" height="24" style="' + marker_style + '" />';
+        } else if (typeof color !== 'undefined') {
+            if (color.val === 'X') {
+                marker_style += 'color: #C91010; font-size: 32px; font-weight: bold; text-align: center; padding-top: 5px; overflow: hidden;';
+                return_marker = '<div style="' + marker_style + '">X</div>';
+            } else {
+                marker_style += 'background-color: ' + color.val + '; border: 1px solid #fff; border-radius: 50%;';
+                return_marker = '<div style="' + marker_style + '"></div>';
+            }
         } else {
-            marker_style += 'background-color: ' + marker_pos[marker] + '; border: 1px solid #fff; border-radius: 50%;';
+            return false;
         }
-
-        marker_style += style;
-
-        return '<div style="' + marker_style + '">' + X + '</div>';
+        return return_marker;
     },
 
     setLevel = function(msg, direction) {
