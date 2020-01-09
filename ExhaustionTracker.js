@@ -14,9 +14,10 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 
     //---- INFO ----//
 
-    var version = '0.5',
+    var version = '0.5.1',
     debugMode = false,
     MARKERS,
+    ALT_MARKERS = [{name:'red', tag: 'red', url:"#C91010"}, {name: 'blue', tag: 'blue', url: "#1076C9"}, {name: 'green', tag: 'green', url: "#2FC910"}, {name: 'brown', tag: 'brown', url: "#C97310"}, {name: 'purple', tag: 'purple', url: "#9510C9"}, {name: 'pink', tag: 'pink', url: "#EB75E1"}, {name: 'yellow', tag: 'yellow', url: "#E5EB75"}, {name: 'dead', tag: 'dead', url: "X"}],
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
@@ -85,7 +86,9 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
             + '<span style=\'' + styles.code + '\'>!exhausted-</span><br>Decreases the selected character\'s Exhaustion Level by one, sets the appropriate Exhaustion Marker on the token, and displays the effects of the new Level.<br><br>';
         }
 
-        message += '<h4>Exhaustion Marker</h4>' + getMarker(state['ExhaustionTracker'].exhaustedMarker, marker_style)
+        var curr_marker = _.find(MARKERS, function (x) { return x.tag == state['ExhaustionTracker'].exhaustedMarker; });
+        if (typeof curr_marker == 'undefined') curr_marker = _.find(ALT_MARKERS, function (x) { return x.tag == state['ExhaustionTracker'].exhaustedMarker; });
+        message += '<h4>Exhaustion Marker</h4>' + getMarker(curr_marker.tag, marker_style)
         + 'This is the current status marker to indicate Exhaustion. A number will appear on it to indicate the character\'s Exhaustion Level.<br>';
 
         if (playerIsGM(msg.playerid)) {
@@ -107,6 +110,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         }
 
         var curr_marker = _.find(MARKERS, function (x) { return x.tag == state['ExhaustionTracker'].exhaustedMarker; });
+        if (typeof curr_marker == 'undefined') curr_marker = _.find(ALT_MARKERS, function (x) { return x.tag == state['ExhaustionTracker'].exhaustedMarker; });
         message += '<h4>Exhaustion Marker</h4>' + getMarker(curr_marker.tag, marker_style)
         + '"' + curr_marker.name + '" is the current status marker being used to indicate Exhaustion.'
         + '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!exhausted markers" title="This may result in a very long list...">Choose Marker</a></div>'
@@ -123,7 +127,7 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
     setMarker = function (msg, marker) {
         marker = marker.replace('=', '::');
         var status_markers = _.pluck(MARKERS, 'tag');
-        _.each(['red', 'blue', 'brown', 'green', 'brown', 'pink', 'purple', 'pink', 'yellow', 'dead'], function (x) { status_markers.push(x); });
+        _.each(_.pluck(ALT_MARKERS, 'tag'), function (x) { status_markers.push(x); });
         if (_.find(status_markers, function (tmp) {return tmp === marker; })) {
             state['ExhaustionTracker'].exhaustedMarker = marker;
         } else {
@@ -149,14 +153,13 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
 	},
 
     showMarkers = function () {
-        var status_markers = ['red', 'blue', 'brown', 'green', 'brown', 'pink', 'purple', 'pink', 'yellow'];
         var message = '<table style="border: 0; width: 100%;" cellpadding="0" cellspacing="2">';
-        _.each(status_markers, function (marker) {
-            message += '<tr><td>' + getMarker(marker, 'margin-right: 10px;') + '</td><td style="white-space: nowrap; width: 100%;">' + marker + '</td>';
+        _.each(ALT_MARKERS, function (marker) {
+            message += '<tr><td>' + getMarker(marker.tag, 'margin-right: 10px;') + '</td><td style="white-space: nowrap; width: 100%;">' + marker.name + '</td>';
             if (marker == state['ExhaustionTracker'].exhaustedMarker) {
                 message += '<td style="text-align: center;">Current</td>';
             } else {
-                message += '<td style="text-align: center; white-space: nowrap; padding: 7px;"><a style="' + styles.button + '" href="!exhausted set-marker ' + marker + '">Set Marker</a></td>';
+                message += '<td style="text-align: center; white-space: nowrap; padding: 7px;"><a style="' + styles.button + '" href="!exhausted set-marker ' + marker.tag + '">Set Marker</a></td>';
             }
             message += '</tr>';
         });
@@ -180,18 +183,17 @@ var ExhaustionTracker = ExhaustionTracker || (function () {
         var return_marker = '',
         marker_style = 'width: 24px; height: 24px;' + style,
         status_markers = _.pluck(MARKERS, 'tag'),
-        alt_markers = [{name:'red', val:"#C91010"}, {name: 'blue', val: "#1076C9"}, {name: 'green', val: "#2FC910"}, {name: 'brown', val: "#C97310"}, {name: 'purple', val: "#9510C9"}, {name: 'pink', val: "#EB75E1"}, {name: 'yellow', val: "#E5EB75"}, {name: 'dead', val: "X"}];
-        var color = _.find(alt_markers, function (x) { return x.name == marker; });
+        alt_marker = _.find(ALT_MARKERS, function (x) { return x.tag == marker; });
 
         if (_.find(status_markers, function (x) { return x == marker; })) {
             var icon = _.find(MARKERS, function (x) { return x.tag == marker; });
             return_marker = '<img src="' + icon.url + '" width="24" height="24" style="' + marker_style + '" />';
-        } else if (typeof color !== 'undefined') {
-            if (color.val === 'X') {
-                marker_style += 'color: #C91010; font-size: 32px; font-weight: bold; text-align: center; padding-top: 5px; overflow: hidden;';
+        } else if (typeof alt_marker !== 'undefined') {
+            if (alt_marker.url === 'X') {
+                marker_style += 'color: #C91010; font-size: 30px; line-height: 24px; font-weight: bold; text-align: center; padding-top: 0px; overflow: hidden;';
                 return_marker = '<div style="' + marker_style + '">X</div>';
             } else {
-                marker_style += 'background-color: ' + color.val + '; border: 1px solid #fff; border-radius: 50%;';
+                marker_style += 'background-color: ' + alt_marker.url + '; border: 1px solid #fff; border-radius: 50%;';
                 return_marker = '<div style="' + marker_style + '"></div>';
             }
         } else {
